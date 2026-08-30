@@ -1,0 +1,22 @@
+{
+  "name": "blockchain-attendance-module",
+  "version": "1.0.0",
+  "description": "Blockchain-based attendance smart contract module built with Hardhat and Solidity",
+  "main": "hardhat.config.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "keywords": [
+    "solidity",
+    "hardhat",
+    "blockchain",
+    "attendance"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  }
+}
