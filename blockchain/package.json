@@ -5,7 +5,8 @@
   "main": "hardhat.config.js",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "start": "node backend/server.js"
   },
   "keywords": [
     "solidity",
@@ -15,8 +16,14 @@
   ],
   "author": "",
   "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.11.1",
+    "express": "^4.19.2"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.22.0"
+    "hardhat": "^2.22.0",
+    "supertest": "^6.3.4"
   }
 }
