@@ -8,13 +8,32 @@ This module contains the Solidity smart contract, Hardhat configuration, unit te
 
 ```
 blockchain/
+├── backend/
+│   ├── routes/
+│   │   └── attendanceRoutes.js    # REST API route handlers (/api/attendance)
+│   ├── services/
+│   │   └── attendanceService.js   # ethers.js smart contract service
+│   └── server.js                  # Express server & static frontend host (Port 5000)
 ├── contracts/
-│   └── Attendance.sol        # Solidity smart contract for recording attendance
+│   └── Attendance.sol             # Solidity smart contract for attendance storage
+├── frontend/
+│   ├── css/
+│   │   └── style.css              # Vanilla CSS dark glassmorphism stylesheet
+│   ├── js/
+│   │   └── app.js                 # Vanilla JS client interacting with Express API
+│   └── index.html                 # Complete responsive UI portal
+├── scripts/
+│   └── deploy.js                  # Hardhat deployment script
 ├── test/
-│   └── Attendance.test.js     # Hardhat Mocha/Chai unit test suite
-├── hardhat.config.js          # Hardhat framework configuration
-├── package.json               # Node.js dependencies and scripts
-└── README.md                  # Module documentation (this file)
+│   ├── Attendance.test.js         # Smart contract unit test suite
+│   ├── attendanceBackend.test.js    # Backend API integration test suite
+│   └── attendanceValidator.test.js  # Validation logic test suite
+├── validation/
+│   └── attendanceValidator.js     # Input and duplicate attendance validator
+├── hardhat.config.js              # Hardhat EVM network configuration
+├── package.json                   # NPM configuration, dependencies, and scripts
+├── .env.example                   # Environment configuration template
+└── README.md                      # Module documentation (this file)
 ```
 
 ---
@@ -142,8 +161,163 @@ npx hardhat compile
 
 ---
 
-## Assumptions & Design Decisions
+## API Endpoints Reference
 
-1. **Date Format Flexibility**: Dates are passed as strings (e.g., `"YYYY-MM-DD"`). This allows standard formatting without needing complex timestamp calculation logic inside the contract.
-2. **Flexible Status String**: Status is stored as a string (e.g., `"Present"`, `"Absent"`, `"Late"`) rather than a strict enum, allowing easy extension of status types without contract redeployment.
-3. **Standalone Hardhat Setup**: Hardhat is configured in the isolated `blockchain/` folder so it doesn't conflict with root project dependencies or frontend/backend setups.
+The Express backend exposes the following REST endpoints:
+
+| Method | Endpoint | Description | Sample Request / Response |
+|---|---|---|---|
+| `GET` | `/api/attendance/count` | Total count of recorded attendance | Response: `{"success": true, "count": 2}` |
+| `POST` | `/api/attendance` | Record attendance on blockchain | Body: `{"studentId": "CSE2301", "date": "2026-10-14", "status": "PRESENT"}` |
+| `GET` | `/api/attendance/:studentId` | Retrieve full history for a student | Response: `{"success": true, "studentId": "...", "records": [...]}` |
+| `GET` | `/api/attendance/:studentId/:date` | Retrieve single attendance record | Response: `{"success": true, "record": {...}}` |
+
+---
+
+## Complete Step-by-Step Windows Running Instructions
+
+Follow these exact steps to run the application locally on Windows.
+
+### Prerequisites
+
+- **Node.js**: v18.x or v20.x installed. Verify with `node -v`.
+- **npm**: Verify with `npm -v` (on Windows PowerShell, use `npm.cmd` if script execution policies apply).
+
+---
+
+### Step 1: Install Dependencies
+
+Open Windows PowerShell or Command Prompt, navigate to the `blockchain` folder, and install dependencies:
+
+```powershell
+cd d:\Blockchain\Blockchain-attendance-system\blockchain
+npm.cmd install
+```
+
+---
+
+### Step 2: Compile the Smart Contract
+
+Compile the Solidity smart contract (`Attendance.sol`) with Hardhat:
+
+```powershell
+npm.cmd run compile
+```
+
+---
+
+### Step 3: Run the Automated Test Suite
+
+Run the Mocha/Chai and Supertest test suites covering the contract, validation, and backend APIs:
+
+```powershell
+npm.cmd test
+```
+
+*Expected Result: 43 passing tests across smart contract, backend API, and validation modules.*
+
+---
+
+### Step 4: Start the Local Hardhat Blockchain Node
+
+In a **separate dedicated terminal window**, start the local EVM blockchain node:
+
+```powershell
+cd d:\Blockchain\Blockchain-attendance-system\blockchain
+npx.cmd hardhat node
+```
+
+*The node will launch at `http://127.0.0.1:8545` and generate 20 pre-funded test accounts with 10,000 ETH each.*
+
+---
+
+### Step 5: Deploy the Smart Contract to Localhost
+
+In your **primary terminal window**, run the deployment script targeting the running node:
+
+```powershell
+cd d:\Blockchain\Blockchain-attendance-system\blockchain
+npm.cmd run deploy:local
+```
+
+*Expected output:*
+```
+Starting deployment of Attendance smart contract...
+Deploying from account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Attendance contract deployed successfully!
+Contract Address: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+```
+
+---
+
+### Step 6: Configure the Environment Variables
+
+Create or update `blockchain/.env` with the deployed contract address and Hardhat test account private key:
+
+```ini
+# Blockchain Network RPC URL
+RPC_URL=http://127.0.0.1:8545
+
+# Deployed Attendance Smart Contract Address from Step 5
+CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
+
+# Private Key of Authorized Account (Hardhat Account #0 default)
+PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+# Express Server Port
+PORT=5000
+```
+
+---
+
+### Step 7: Start the Express Backend Server
+
+Start the Express application:
+
+```powershell
+cd d:\Blockchain\Blockchain-attendance-system\blockchain
+npm.cmd start
+```
+
+*Expected output:*
+```
+Backend API server running on port 5000
+```
+
+---
+
+### Step 8: Open the Frontend Application
+
+Open your browser and navigate to:
+
+`http://localhost:5000`
+
+The portal provides:
+- **System Dashboard**: Live attendance record count and on-chain connection verification.
+- **Record Attendance**: Form to record attendance with duplicate protection and real transaction hashes.
+- **Student History**: Chronological audit trail, attendance percentage, and status breakdown.
+- **Find Record**: Single record lookup with verified on-chain signer details.
+
+---
+
+## Important Notice on Local Blockchain Resets
+
+The local Hardhat node (`npx hardhat node`) runs entirely in memory:
+- If you terminate or restart the Hardhat node, all blocks and contract states are reset to 0.
+- When restarting the node, you must **re-run Step 5** (`npm.cmd run deploy:local`) and ensure the new `CONTRACT_ADDRESS` is updated in your `blockchain/.env` file.
+- Restart the Express backend (`npm.cmd start`) to pick up the updated contract.
+
+---
+
+## Troubleshooting Common Windows Issues
+
+1. **PowerShell Script Execution Restriction (`UnauthorizedAccess` / `npm.ps1 cannot be loaded`)**:
+   - Cause: Windows execution policy blocks `.ps1` scripts by default.
+   - Solution: Use `npm.cmd` and `npx.cmd` instead of `npm` and `npx`, or run in Command Prompt (`cmd.exe`).
+2. **Error: `connect ECONNREFUSED 127.0.0.1:8545`**:
+   - Cause: The Hardhat local node is not running.
+   - Solution: Ensure Step 4 is running in its own terminal window before starting the backend.
+3. **Error: `No attendance record found` (404)**:
+   - Expected behavior when searching for a student and date that has not yet been marked.
+4. **Port 5000 Already in Use**:
+   - Change `PORT=5001` in `blockchain/.env` and access `http://localhost:5001`.
