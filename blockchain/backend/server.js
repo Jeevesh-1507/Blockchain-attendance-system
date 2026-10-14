@@ -1,4 +1,5 @@
 require("dotenv").config();
+const path = require("path");
 const express = require("express");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 
@@ -7,8 +8,17 @@ const app = express();
 // Body Parser Middleware
 app.use(express.json());
 
+// Serve static frontend files
+const frontendPath = path.join(__dirname, "../frontend");
+app.use(express.static(frontendPath));
+
 // API Routes
 app.use("/api/attendance", attendanceRoutes);
+
+// Serve index.html for root path
+app.get("/", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 // 404 Handler for Unmatched Routes
 app.use((req, res) => {
