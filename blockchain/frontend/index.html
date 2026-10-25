@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Blockchain-Based Attendance System - Immutable, tamper-proof student attendance management using Ethereum smart contracts, Hardhat, and Express.js.">
-  <title>Blockchain-Based Attendance System</title>
+  <meta name="description" content="Blockchain-Based Teacher-Authenticated Subject-Wise Attendance Management System - Ethereum Smart Contracts, Hardhat, and Express.js.">
+  <title>Blockchain Attendance System - Faculty Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,574 +12,1019 @@
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="app-header">
-    <div class="header-container">
-      <div class="brand">
-        <div class="brand-icon" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Floating Toast Notifications -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- ==================================================== -->
+  <!-- 1. TEACHER & ADMINISTRATOR LOGIN VIEW -->
+  <!-- ==================================================== -->
+  <div id="view-login" class="login-view-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="brand-icon brand-icon-large" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             <path d="m9 12 2 2 4-4"/>
           </svg>
         </div>
-        <div>
-          <h1 class="brand-title">Blockchain-Based Attendance System</h1>
-          <p class="brand-subtitle">Decentralized &amp; Tamper-Resistant Attendance on Ethereum Smart Contracts</p>
+        <h1 class="login-title">Faculty &amp; Admin Portal</h1>
+        <p class="login-subtitle">Blockchain-Based Attendance Management System</p>
+      </div>
+
+      <!-- Login Alert / Error Container -->
+      <div id="login-alert-container" class="alert-box" style="display: none;" role="alert">
+        <div class="alert-icon" id="login-alert-icon"></div>
+        <div class="alert-content">
+          <h4 id="login-alert-title" class="alert-title"></h4>
+          <p id="login-alert-message" class="alert-message"></p>
         </div>
       </div>
 
-      <!-- Network and Backend Status Indicator -->
-      <div class="header-status">
-        <div id="connection-status-badge" class="status-pill status-checking" title="Backend & Blockchain Status">
-          <span class="status-dot"></span>
-          <span id="connection-status-text">Checking system...</span>
+      <!-- Login Form -->
+      <form id="teacher-login-form" novalidate>
+        <div class="form-group">
+          <label for="login-username" class="form-label">
+            Teacher ID or Username <span class="required-star">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input
+              type="text"
+              id="login-username"
+              name="username"
+              class="form-input"
+              placeholder="e.g. nazneen, shakthi, or TCH-001"
+              required
+              autocomplete="username"
+            />
+          </div>
         </div>
-        <button id="header-refresh-btn" class="btn-icon" title="Refresh System Status" aria-label="Refresh System Status">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-          </svg>
+
+        <div class="form-group">
+          <label for="login-password" class="form-label">
+            Password <span class="required-star">*</span>
+          </label>
+          <div class="input-wrapper password-input-wrapper">
+            <input
+              type="password"
+              id="login-password"
+              name="password"
+              class="form-input"
+              placeholder="Enter your account password"
+              required
+              autocomplete="current-password"
+            />
+            <button type="button" id="login-toggle-pwd" class="btn-toggle-pwd" title="Toggle password visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block">
+          <span id="login-btn-text">Sign In to Dashboard</span>
+          <div id="login-btn-spinner" class="spinner-small" style="display: none;"></div>
         </button>
+      </form>
+
+      <!-- Quick Demo Credentials for Local Evaluator Testing -->
+      <div class="demo-credentials-card">
+        <div class="demo-card-header">
+          <span class="demo-card-title">Quick Demo Logins (Click to autofill):</span>
+        </div>
+        <div class="demo-chips-grid">
+          <button type="button" class="demo-chip" id="demo-chip-nazneen" data-login-user="nazneen" data-login-pwd="TeacherPassword@123">
+            <span class="demo-chip-name">Nazneen</span>
+            <span class="demo-chip-role">Blockchain Technology</span>
+          </button>
+          <button type="button" class="demo-chip" id="demo-chip-shakthi" data-login-user="shakthi" data-login-pwd="TeacherPassword@123">
+            <span class="demo-chip-name">Shakthi</span>
+            <span class="demo-chip-role">Software Development</span>
+          </button>
+          <button type="button" class="demo-chip demo-chip-admin" id="demo-chip-admin" data-login-user="admin" data-login-pwd="AdminPassword@123">
+            <span class="demo-chip-name">System Administrator</span>
+            <span class="demo-chip-role">Admin Management</span>
+          </button>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- Navigation Tabs -->
-    <nav class="nav-tabs-wrapper" aria-label="Main Navigation">
-      <div class="nav-tabs" role="tablist">
-        <button id="tab-btn-dashboard" class="nav-tab active" role="tab" aria-selected="true" aria-controls="section-dashboard" data-target="dashboard">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="7" height="9" x="3" y="3" rx="1"/>
-            <rect width="7" height="5" x="14" y="3" rx="1"/>
-            <rect width="7" height="9" x="14" y="12" rx="1"/>
-            <rect width="7" height="5" x="3" y="16" rx="1"/>
-          </svg>
-          <span>Dashboard</span>
-        </button>
-        <button id="tab-btn-record" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-record" data-target="record">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>
-          <span>Record Attendance</span>
-        </button>
-        <button id="tab-btn-history" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-history" data-target="history">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 3v5h5"/>
-            <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
-            <path d="M12 7v5l4 2"/>
-          </svg>
-          <span>Student History</span>
-        </button>
-        <button id="tab-btn-lookup" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-lookup" data-target="lookup">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.3-4.3"/>
-          </svg>
-          <span>Find Record</span>
-        </button>
-      </div>
-    </nav>
-  </header>
+  <!-- ==================================================== -->
+  <!-- 2. AUTHENTICATED APPLICATION CONTAINER -->
+  <!-- ==================================================== -->
+  <div id="app-authenticated-container" style="display: none;">
 
-  <!-- Notification Banner / Toast Container -->
-  <div id="toast-container" class="toast-container" aria-live="polite"></div>
-
-  <!-- Main Content Container -->
-  <main class="main-content">
-
-    <!-- ==================================================== -->
-    <!-- SECTION 1: DASHBOARD / OVERVIEW -->
-    <!-- ==================================================== -->
-    <section id="section-dashboard" class="content-section active" role="tabpanel" aria-labelledby="tab-btn-dashboard">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">System Dashboard</h2>
-          <p class="section-desc">Real-time overview of the decentralized attendance smart contract state.</p>
-        </div>
-        <button id="dashboard-refresh-btn" class="btn btn-secondary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-          </svg>
-          <span>Refresh Count</span>
-        </button>
-      </div>
-
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <!-- Card 1: Total Records -->
-        <div class="stat-card stat-card-primary">
-          <div class="stat-card-header">
-            <span class="stat-card-title">Total Attendance Records</span>
-            <div class="stat-card-icon icon-blue">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-card-body">
-            <div id="total-count-value" class="stat-value">--</div>
-            <div id="total-count-spinner" class="spinner-small" style="display: none;"></div>
-          </div>
-          <div class="stat-card-footer">
-            <span id="total-count-status" class="stat-subtitle">Querying contract...</span>
-          </div>
-        </div>
-
-        <!-- Card 2: Blockchain State -->
-        <div class="stat-card">
-          <div class="stat-card-header">
-            <span class="stat-card-title">Smart Contract Network</span>
-            <div class="stat-card-icon icon-green">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
-                <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
-                <line x1="6" x2="6.01" y1="6" y2="6"/>
-                <line x1="6" x2="6.01" y1="18" y2="18"/>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-card-body">
-            <div id="network-badge-value" class="stat-value-text">Local Hardhat</div>
-          </div>
-          <div class="stat-card-footer">
-            <span class="stat-subtitle">EVM Chain ID: 31337</span>
-          </div>
-        </div>
-
-        <!-- Card 3: Storage Integrity -->
-        <div class="stat-card">
-          <div class="stat-card-header">
-            <span class="stat-card-title">Storage Architecture</span>
-            <div class="stat-card-icon icon-purple">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-card-body">
-            <div class="stat-value-text">Solidity 0.8.20</div>
-          </div>
-          <div class="stat-card-footer">
-            <span class="stat-subtitle">Cryptographic Hash Lookup</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Action Cards -->
-      <div class="dashboard-actions-grid">
-        <div class="action-card" id="card-action-record">
-          <div class="action-card-icon icon-blue">
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="header-container">
+        <div class="brand">
+          <div class="brand-icon" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 5v14M5 12h14"/>
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
             </svg>
           </div>
-          <h3>Record Attendance</h3>
-          <p>Submit a student's daily attendance directly to the blockchain ledger.</p>
-          <button class="btn btn-outline" id="btn-quick-record">Open Record Form &rarr;</button>
+          <div>
+            <h1 class="brand-title">Blockchain Attendance System</h1>
+            <p class="brand-subtitle">Teacher-Authenticated &bull; Subject-Wise &bull; Tamper-Proof Smart Contracts</p>
+          </div>
         </div>
 
-        <div class="action-card" id="card-action-history">
-          <div class="action-card-icon icon-purple">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Faculty Profile & System Status -->
+        <div class="header-user-panel">
+          <div class="teacher-profile-badge">
+            <div class="teacher-avatar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div class="teacher-info">
+              <span id="header-teacher-name" class="teacher-name">--</span>
+              <span id="header-teacher-id" class="teacher-id">--</span>
+            </div>
+            <div id="header-assigned-subjects-badge" class="teacher-subjects-tags">
+              <!-- Dynamically populated subject chips -->
+            </div>
+          </div>
+
+          <div id="connection-status-badge" class="status-pill status-checking" title="Backend & Blockchain Status">
+            <span class="status-dot"></span>
+            <span id="connection-status-text">Checking system...</span>
+          </div>
+
+          <button id="header-logout-btn" class="btn btn-secondary btn-sm" title="Log out from session">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" x2="9" y1="12" y2="12"/>
+            </svg>
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs-wrapper" aria-label="Main Navigation">
+        <div class="nav-tabs" role="tablist">
+          <button id="tab-btn-dashboard" class="nav-tab active" role="tab" aria-selected="true" aria-controls="section-dashboard" data-target="dashboard">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="7" height="9" x="3" y="3" rx="1"/>
+              <rect width="7" height="5" x="14" y="3" rx="1"/>
+              <rect width="7" height="9" x="14" y="12" rx="1"/>
+              <rect width="7" height="5" x="3" y="16" rx="1"/>
+            </svg>
+            <span>Dashboard</span>
+          </button>
+
+          <button id="tab-btn-record" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-record" data-target="record">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            <span>Mark Attendance</span>
+          </button>
+
+          <button id="tab-btn-bulk" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-bulk" data-target="bulk">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Bulk Attendance</span>
+          </button>
+
+          <button id="tab-btn-history" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-history" data-target="history">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 3v5h5"/>
               <path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
               <path d="M12 7v5l4 2"/>
             </svg>
-          </div>
-          <h3>Student History</h3>
-          <p>Retrieve and audit the complete chronological attendance log for any student.</p>
-          <button class="btn btn-outline" id="btn-quick-history">Search History &rarr;</button>
-        </div>
+            <span>Student History</span>
+          </button>
 
-        <div class="action-card" id="card-action-lookup">
-          <div class="action-card-icon icon-green">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button id="tab-btn-report" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-report" data-target="report">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            <span>Subject Reports</span>
+          </button>
+
+          <button id="tab-btn-lookup" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-lookup" data-target="lookup">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"/>
               <path d="m21 21-4.3-4.3"/>
             </svg>
-          </div>
-          <h3>Verify Single Record</h3>
-          <p>Instantly check whether attendance was recorded for a student on a specific date.</p>
-          <button class="btn btn-outline" id="btn-quick-lookup">Find Record &rarr;</button>
-        </div>
-      </div>
+            <span>Find Record</span>
+          </button>
 
-      <!-- Technical Architecture Overview -->
-      <div class="panel-card architecture-panel">
-        <h3 class="panel-title">Decentralized Attendance Verification Architecture</h3>
-        <p class="panel-desc">How student attendance is recorded and protected against tampering:</p>
-        <div class="architecture-steps">
-          <div class="arch-step">
-            <div class="step-num">1</div>
-            <div class="step-content">
-              <h4>Input Validation</h4>
-              <p>Student ID, YYYY-MM-DD calendar date, and PRESENT/ABSENT status are validated client-side and verified server-side by <code>attendanceValidator.js</code>.</p>
-            </div>
+          <button id="tab-btn-admin" class="nav-tab" role="tab" aria-selected="false" aria-controls="section-admin" data-target="admin" style="display: none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span>Admin Console</span>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- ==================================================== -->
+      <!-- SECTION 1: DASHBOARD / OVERVIEW -->
+      <!-- ==================================================== -->
+      <section id="section-dashboard" class="content-section active" role="tabpanel" aria-labelledby="tab-btn-dashboard">
+        <div class="welcome-banner">
+          <div class="welcome-text">
+            <h2>Welcome back, <span id="dash-welcome-name">Faculty Member</span></h2>
+            <p>You are authenticated as <strong id="dash-welcome-role">Teacher</strong>. You have permissions to record and audit attendance for your assigned subjects.</p>
           </div>
-          <div class="arch-step">
-            <div class="step-num">2</div>
-            <div class="step-content">
-              <h4>Duplicate Prevention</h4>
-              <p>The contract computes <code>keccak256(abi.encodePacked(studentId, date))</code>. If the key exists, the transaction safely reverts to prevent double-marking.</p>
-            </div>
-          </div>
-          <div class="arch-step">
-            <div class="step-num">3</div>
-            <div class="step-content">
-              <h4>Immutable Blockchain Storage</h4>
-              <p>Transactions are mined on the local EVM blockchain via ethers.js. The smart contract emits an <code>AttendanceMarked</code> event with timestamp and signer address.</p>
-            </div>
+          <div class="welcome-subjects" id="dash-welcome-subjects-box">
+            <!-- Dynamic assigned subject badges -->
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ==================================================== -->
-    <!-- SECTION 2: RECORD ATTENDANCE -->
-    <!-- ==================================================== -->
-    <section id="section-record" class="content-section" role="tabpanel" aria-labelledby="tab-btn-record">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Record Student Attendance</h2>
-          <p class="section-desc">Submit new attendance data to be permanently recorded on the blockchain ledger.</p>
-        </div>
-      </div>
-
-      <div class="form-layout-container">
-        <!-- Record Form Card -->
-        <div class="card form-card">
-          <form id="record-attendance-form" novalidate>
-            <div class="form-group">
-              <label for="record-student-id" class="form-label">
-                Student ID <span class="required-star">*</span>
-              </label>
-              <div class="input-wrapper">
-                <input
-                  type="text"
-                  id="record-student-id"
-                  name="studentId"
-                  class="form-input"
-                  placeholder="e.g. CSE2301 or STU1001"
-                  required
-                  autocomplete="off"
-                />
+        <div class="stats-grid">
+          <!-- Total Records -->
+          <div class="stat-card stat-card-primary">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Total Blockchain Attendance Records</span>
+              <div class="stat-card-icon icon-blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
               </div>
-              <span class="field-hint">Unique identifier for the student</span>
             </div>
+            <div class="stat-card-body">
+              <div id="total-count-value" class="stat-value">--</div>
+              <div id="total-count-spinner" class="spinner-small" style="display: none;"></div>
+            </div>
+            <div class="stat-card-footer">
+              <span id="total-count-status" class="stat-subtitle">Querying smart contract...</span>
+            </div>
+          </div>
 
-            <div class="form-group">
-              <label for="record-date" class="form-label">
-                Attendance Date <span class="required-star">*</span>
-              </label>
-              <div class="input-wrapper">
-                <input
-                  type="date"
-                  id="record-date"
-                  name="date"
-                  class="form-input"
-                  required
-                />
+          <!-- Network State -->
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Smart Contract Network</span>
+              <div class="stat-card-icon icon-green">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>
+                  <rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>
+                  <line x1="6" x2="6.01" y1="6" y2="6"/>
+                  <line x1="6" x2="6.01" y1="18" y2="18"/>
+                </svg>
               </div>
-              <span class="field-hint">Date formatted as YYYY-MM-DD</span>
             </div>
+            <div class="stat-card-body">
+              <div id="network-badge-value" class="stat-value-text">Local Hardhat (31337)</div>
+            </div>
+            <div class="stat-card-footer">
+              <span class="stat-subtitle">Authorized Backend Signing Wallet</span>
+            </div>
+          </div>
 
+          <!-- Teacher Attribution State -->
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Teacher Attribution</span>
+              <div class="stat-card-icon icon-purple">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-card-body">
+              <div class="stat-value-text" id="dash-teacher-id-val">Verified Session</div>
+            </div>
+            <div class="stat-card-footer">
+              <span class="stat-subtitle">Recorded with each on-chain transaction</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Navigation Actions -->
+        <div class="dashboard-actions-grid">
+          <div class="action-card" id="card-action-record">
+            <div class="action-card-icon icon-blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </div>
+            <h3>Mark Attendance</h3>
+            <p>Submit single student daily attendance for your authorized subjects.</p>
+            <button class="btn btn-outline" id="btn-quick-record">Open Single Form &rarr;</button>
+          </div>
+
+          <div class="action-card" id="card-action-bulk">
+            <div class="action-card-icon icon-purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+            </div>
+            <h3>Bulk Class Attendance</h3>
+            <p>Take attendance for an entire class roster in one intuitive faculty workflow.</p>
+            <button class="btn btn-outline" id="btn-quick-bulk">Launch Bulk Attendance &rarr;</button>
+          </div>
+
+          <div class="action-card" id="card-action-report">
+            <div class="action-card-icon icon-green">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <h3>Subject Reports &amp; CSV</h3>
+            <p>Calculate attendance percentages and export audit logs to CSV.</p>
+            <button class="btn btn-outline" id="btn-quick-report">View Reports &rarr;</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- SECTION 2: SINGLE ATTENDANCE RECORDING -->
+      <!-- ==================================================== -->
+      <section id="section-record" class="content-section" role="tabpanel" aria-labelledby="tab-btn-record">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Mark Student Attendance</h2>
+            <p class="section-desc">Record subject-wise attendance directly to the Ethereum blockchain ledger.</p>
+          </div>
+        </div>
+
+        <div class="form-layout-container">
+          <div class="card form-card">
+            <form id="record-attendance-form" novalidate>
+              <!-- Subject Dropdown -->
+              <div class="form-group">
+                <label for="record-subject" class="form-label">
+                  Subject <span class="required-star">*</span>
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="record-subject" name="subject" class="form-select" required>
+                    <!-- Populated dynamically with teacher's assigned subjects -->
+                  </select>
+                </div>
+                <span class="field-hint">Only subjects assigned to your faculty account are selectable</span>
+              </div>
+
+              <!-- Student ID -->
+              <div class="form-group">
+                <label for="record-student-id" class="form-label">
+                  Student ID <span class="required-star">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <input
+                    type="text"
+                    id="record-student-id"
+                    name="studentId"
+                    class="form-input"
+                    placeholder="e.g. CSE0917"
+                    required
+                    autocomplete="off"
+                  />
+                </div>
+                <span class="field-hint">Unique student identifier</span>
+              </div>
+
+              <!-- Date -->
+              <div class="form-group">
+                <label for="record-date" class="form-label">
+                  Attendance Date <span class="required-star">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <input
+                    type="date"
+                    id="record-date"
+                    name="date"
+                    class="form-input"
+                    required
+                  />
+                </div>
+                <span class="field-hint">Date formatted as YYYY-MM-DD</span>
+              </div>
+
+              <!-- Status -->
+              <div class="form-group">
+                <label for="record-status" class="form-label">
+                  Attendance Status <span class="required-star">*</span>
+                </label>
+                <div class="input-wrapper select-wrapper">
+                  <select id="record-status" name="status" class="form-select" required>
+                    <option value="PRESENT">PRESENT</option>
+                    <option value="ABSENT">ABSENT</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Submit -->
+              <button type="submit" id="record-submit-btn" class="btn btn-primary btn-block">
+                <span id="record-btn-text">Submit to Blockchain Ledger</span>
+                <div id="record-btn-spinner" class="spinner-small" style="display: none;"></div>
+              </button>
+            </form>
+
+            <!-- Result Feedback Alert -->
+            <div id="record-alert-container" class="alert-box" style="display: none;" role="alert">
+              <div class="alert-icon" id="record-alert-icon"></div>
+              <div class="alert-content">
+                <h4 id="record-alert-title" class="alert-title"></h4>
+                <p id="record-alert-message" class="alert-message"></p>
+                <div id="record-alert-details" class="alert-details" style="display: none;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Guidelines & Demo IDs -->
+          <div class="card info-card">
+            <h3 class="info-title">Subject-Wise Rules</h3>
+            <ul class="info-list">
+              <li>
+                <div class="info-bullet"></div>
+                <div>
+                  <strong>Subject Uniqueness:</strong> A student can only have <em>one</em> record per subject per date. Submitting again for the exact same subject and date will be prevented.
+                </div>
+              </li>
+              <li>
+                <div class="info-bullet"></div>
+                <div>
+                  <strong>Multi-Subject Permitted:</strong> A student <em>can</em> have different records for different subjects on the same date (e.g. CSE0917 on 2026-10-25: Java = PRESENT, DBMS = ABSENT).
+                </div>
+              </li>
+              <li>
+                <div class="info-bullet"></div>
+                <div>
+                  <strong>Teacher Attribution:</strong> Your verified identity is permanently recorded on the blockchain with the entry.
+                </div>
+              </li>
+            </ul>
+
+            <div class="sample-ids-box">
+              <span class="sample-ids-title">Quick Student Demo IDs:</span>
+              <div class="sample-chips">
+                <button type="button" class="chip-btn" data-fill-student="CSE0917">CSE0917 (Arjun)</button>
+                <button type="button" class="chip-btn" data-fill-student="CSE0918">CSE0918 (Priya)</button>
+                <button type="button" class="chip-btn" data-fill-student="CSE0919">CSE0919 (Rahul)</button>
+                <button type="button" class="chip-btn" data-fill-student="CSE0920">CSE0920 (Sneha)</button>
+                <button type="button" class="chip-btn" data-fill-student="CSE0921">CSE0921 (Vikram)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- SECTION 3: BULK CLASS ATTENDANCE -->
+      <!-- ==================================================== -->
+      <section id="section-bulk" class="content-section" role="tabpanel" aria-labelledby="tab-btn-bulk">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Faculty Bulk Attendance</h2>
+            <p class="section-desc">Quickly mark and submit attendance for an entire enrolled student roster.</p>
+          </div>
+        </div>
+
+        <!-- Bulk Controls Card -->
+        <div class="card bulk-controls-card">
+          <div class="bulk-controls-grid">
             <div class="form-group">
-              <label for="record-status" class="form-label">
-                Attendance Status <span class="required-star">*</span>
-              </label>
+              <label for="bulk-subject" class="form-label">Select Subject <span class="required-star">*</span></label>
               <div class="input-wrapper select-wrapper">
-                <select id="record-status" name="status" class="form-select" required>
-                  <option value="PRESENT">PRESENT</option>
-                  <option value="ABSENT">ABSENT</option>
+                <select id="bulk-subject" class="form-select">
+                  <!-- Populated dynamically -->
                 </select>
               </div>
-              <span class="field-hint">Must be PRESENT or ABSENT</span>
             </div>
 
-            <!-- Submit Button with Spinner -->
-            <button type="submit" id="record-submit-btn" class="btn btn-primary btn-block">
-              <span id="record-btn-text">Record Attendance on Blockchain</span>
-              <div id="record-btn-spinner" class="spinner-small" style="display: none;"></div>
-            </button>
-          </form>
-
-          <!-- Form Message Container -->
-          <div id="record-alert-container" class="alert-box" style="display: none;" role="alert">
-            <div class="alert-icon" id="record-alert-icon"></div>
-            <div class="alert-content">
-              <h4 id="record-alert-title" class="alert-title"></h4>
-              <p id="record-alert-message" class="alert-message"></p>
-              <div id="record-alert-details" class="alert-details" style="display: none;"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Info / Guidelines Card -->
-        <div class="card info-card">
-          <h3 class="info-title">Transaction Guidelines</h3>
-          <ul class="info-list">
-            <li>
-              <div class="info-bullet"></div>
-              <div>
-                <strong>Immutability:</strong> Once recorded, an attendance entry cannot be edited or erased from the blockchain.
+            <div class="form-group">
+              <label for="bulk-date" class="form-label">Attendance Date <span class="required-star">*</span></label>
+              <div class="input-wrapper">
+                <input type="date" id="bulk-date" class="form-input" required />
               </div>
-            </li>
-            <li>
-              <div class="info-bullet"></div>
-              <div>
-                <strong>Duplicate Guard:</strong> Only one attendance record per student per date is permitted. Submitting again for the same date will be safely rejected.
-              </div>
-            </li>
-            <li>
-              <div class="info-bullet"></div>
-              <div>
-                <strong>Cryptographic Signature:</strong> Every record is cryptographically signed by the authorized backend wallet and timestamped by the EVM block.
-              </div>
-            </li>
-          </ul>
-
-          <div class="sample-ids-box">
-            <span class="sample-ids-title">Quick Demo IDs:</span>
-            <div class="sample-chips">
-              <button type="button" class="chip-btn" data-fill-student="CSE2301">CSE2301</button>
-              <button type="button" class="chip-btn" data-fill-student="CSE2302">CSE2302</button>
-              <button type="button" class="chip-btn" data-fill-student="STU1001">STU1001</button>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- ==================================================== -->
-    <!-- SECTION 3: STUDENT ATTENDANCE HISTORY -->
-    <!-- ==================================================== -->
-    <section id="section-history" class="content-section" role="tabpanel" aria-labelledby="tab-btn-history">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Student Attendance History</h2>
-          <p class="section-desc">Search and inspect all historical attendance records for any student.</p>
-        </div>
-      </div>
-
-      <!-- Search Form -->
-      <div class="card search-card">
-        <form id="history-search-form" class="inline-form" novalidate>
-          <div class="form-group flex-1">
-            <label for="history-student-id" class="form-label">Student ID</label>
-            <div class="input-wrapper">
-              <input
-                type="text"
-                id="history-student-id"
-                name="studentId"
-                class="form-input"
-                placeholder="Enter Student ID (e.g. CSE2301)"
-                required
-              />
-            </div>
-          </div>
-          <button type="submit" id="history-fetch-btn" class="btn btn-primary">
-            <span id="history-btn-text">Retrieve History</span>
-            <div id="history-btn-spinner" class="spinner-small" style="display: none;"></div>
-          </button>
-        </form>
-      </div>
-
-      <!-- History Status / Message Banner -->
-      <div id="history-alert-container" class="alert-box" style="display: none;" role="alert">
-        <div class="alert-icon" id="history-alert-icon"></div>
-        <div class="alert-content">
-          <h4 id="history-alert-title" class="alert-title"></h4>
-          <p id="history-alert-message" class="alert-message"></p>
-        </div>
-      </div>
-
-      <!-- Student Stats Summary (Shown when records are loaded) -->
-      <div id="history-stats-container" class="history-stats-row" style="display: none;">
-        <div class="stat-mini-card">
-          <span class="stat-mini-label">Student ID</span>
-          <span id="history-stat-student-id" class="stat-mini-val">--</span>
-        </div>
-        <div class="stat-mini-card">
-          <span class="stat-mini-label">Total Records</span>
-          <span id="history-stat-total" class="stat-mini-val">0</span>
-        </div>
-        <div class="stat-mini-card">
-          <span class="stat-mini-label">Present</span>
-          <span id="history-stat-present" class="stat-mini-val text-green">0</span>
-        </div>
-        <div class="stat-mini-card">
-          <span class="stat-mini-label">Absent</span>
-          <span id="history-stat-absent" class="stat-mini-val text-red">0</span>
-        </div>
-        <div class="stat-mini-card">
-          <span class="stat-mini-label">Attendance Rate</span>
-          <span id="history-stat-percentage" class="stat-mini-val text-blue">0%</span>
-        </div>
-      </div>
-
-      <!-- Results Table Container -->
-      <div id="history-table-container" class="card table-card" style="display: none;">
-        <div class="table-card-header">
-          <h3 class="table-card-title">Attendance Records</h3>
-          <span id="history-records-count-badge" class="badge badge-neutral">0 records</span>
-        </div>
-        <div class="table-responsive">
-          <table class="data-table" id="history-table" aria-label="Student Attendance History Table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Student ID</th>
-                <th scope="col">Date</th>
-                <th scope="col">Status</th>
-                <th scope="col">Block Timestamp</th>
-                <th scope="col">Recorded By</th>
-              </tr>
-            </thead>
-            <tbody id="history-table-body">
-              <!-- Dynamically populated via safe DOM creation -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Empty State Container -->
-      <div id="history-empty-state" class="empty-state-card" style="display: none;">
-        <div class="empty-state-icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 8v4"/>
-            <path d="M12 16h.01"/>
-          </svg>
-        </div>
-        <h3 id="history-empty-title">No Attendance Records Found</h3>
-        <p id="history-empty-message">No attendance history exists for this student on the blockchain.</p>
-      </div>
-    </section>
-
-    <!-- ==================================================== -->
-    <!-- SECTION 4: FIND AN INDIVIDUAL RECORD -->
-    <!-- ==================================================== -->
-    <section id="section-lookup" class="content-section" role="tabpanel" aria-labelledby="tab-btn-lookup">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Find an Individual Attendance Record</h2>
-          <p class="section-desc">Query the blockchain for a student's verified attendance record on a specific date.</p>
-        </div>
-      </div>
-
-      <!-- Lookup Search Form -->
-      <div class="card search-card">
-        <form id="lookup-search-form" class="lookup-form-grid" novalidate>
-          <div class="form-group">
-            <label for="lookup-student-id" class="form-label">
-              Student ID <span class="required-star">*</span>
-            </label>
-            <div class="input-wrapper">
-              <input
-                type="text"
-                id="lookup-student-id"
-                name="studentId"
-                class="form-input"
-                placeholder="e.g. CSE2301"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="lookup-date" class="form-label">
-              Attendance Date <span class="required-star">*</span>
-            </label>
-            <div class="input-wrapper">
-              <input
-                type="date"
-                id="lookup-date"
-                name="date"
-                class="form-input"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="form-group form-group-action">
-            <button type="submit" id="lookup-search-btn" class="btn btn-primary btn-block">
-              <span id="lookup-btn-text">Search Record</span>
-              <div id="lookup-btn-spinner" class="spinner-small" style="display: none;"></div>
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Lookup Alert / Error Box -->
-      <div id="lookup-alert-container" class="alert-box" style="display: none;" role="alert">
-        <div class="alert-icon" id="lookup-alert-icon"></div>
-        <div class="alert-content">
-          <h4 id="lookup-alert-title" class="alert-title"></h4>
-          <p id="lookup-alert-message" class="alert-message"></p>
-        </div>
-      </div>
-
-      <!-- Single Record Display Card -->
-      <div id="lookup-result-card" class="card record-detail-card" style="display: none;">
-        <div class="record-detail-header">
-          <div class="record-header-left">
-            <span class="verified-badge">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="m9 12 2 2 4-4"/>
-              </svg>
-              <span>Verified On-Chain</span>
-            </span>
-            <h3 class="record-student-title" id="lookup-res-student-id">--</h3>
-          </div>
-          <div id="lookup-res-status-badge">
-            <!-- Dynamic status pill -->
-          </div>
-        </div>
-
-        <div class="record-detail-grid">
-          <div class="record-detail-item">
-            <span class="detail-label">Attendance Date</span>
-            <span class="detail-value" id="lookup-res-date">--</span>
-          </div>
-
-          <div class="record-detail-item">
-            <span class="detail-label">Attendance Status</span>
-            <span class="detail-value" id="lookup-res-status">--</span>
-          </div>
-
-          <div class="record-detail-item">
-            <span class="detail-label">Ethereum Block Timestamp</span>
-            <span class="detail-value" id="lookup-res-timestamp">--</span>
-          </div>
-
-          <div class="record-detail-item detail-item-wide">
-            <span class="detail-label">Recorded By (Wallet Signer)</span>
-            <div class="detail-value address-container">
-              <code class="wallet-address" id="lookup-res-recorded-by">--</code>
-              <button id="lookup-copy-address-btn" class="btn-copy" title="Copy Address">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                </svg>
+            <div class="form-group form-group-action">
+              <button type="button" id="bulk-load-roster-btn" class="btn btn-secondary btn-block">
+                <span>Load Student Roster</span>
               </button>
             </div>
           </div>
         </div>
+
+        <!-- Roster Table Card -->
+        <div id="bulk-roster-card" class="card" style="display: none; margin-top: 1.25rem;">
+          <div class="roster-toolbar">
+            <div class="roster-info">
+              <h3 class="roster-title">Class Roster &mdash; <span id="bulk-roster-subject-name">Subject</span></h3>
+              <span id="bulk-roster-count-badge" class="badge badge-neutral">0 Students</span>
+            </div>
+            <div class="roster-actions">
+              <button type="button" id="bulk-mark-all-present" class="btn btn-outline btn-sm">
+                Mark All Present
+              </button>
+              <button type="button" id="bulk-mark-all-absent" class="btn btn-outline btn-sm">
+                Mark All Absent
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table" id="bulk-table" aria-label="Bulk Student Attendance Table">
+              <thead>
+                <tr>
+                  <th scope="col" style="width: 50px;">#</th>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Student Name</th>
+                  <th scope="col">Department</th>
+                  <th scope="col" style="width: 220px;">Mark Status</th>
+                  <th scope="col" style="width: 140px;">Current Value</th>
+                </tr>
+              </thead>
+              <tbody id="bulk-table-body">
+                <!-- Dynamically populated roster -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Bulk Submission Bar -->
+          <div class="bulk-submit-bar">
+            <div class="bulk-summary-preview">
+              <span>Ready to submit: </span>
+              <strong id="bulk-present-count" class="text-green">0 Present</strong>,
+              <strong id="bulk-absent-count" class="text-red">0 Absent</strong>
+            </div>
+            <button type="button" id="bulk-submit-btn" class="btn btn-primary">
+              <span id="bulk-btn-text">Submit Bulk Attendance to Blockchain</span>
+              <div id="bulk-btn-spinner" class="spinner-small" style="display: none;"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bulk Outcomes Container -->
+        <div id="bulk-results-card" class="card" style="display: none; margin-top: 1.25rem;">
+          <div class="table-card-header">
+            <h3 class="table-card-title">Blockchain Submission Outcomes</h3>
+            <span id="bulk-outcome-badge" class="badge badge-success">Completed</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="bulk-results-table">
+              <thead>
+                <tr>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Outcome</th>
+                  <th scope="col">Blockchain Transaction Hash / Details</th>
+                </tr>
+              </thead>
+              <tbody id="bulk-results-tbody">
+                <!-- Outcomes per student -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- SECTION 4: STUDENT ATTENDANCE HISTORY -->
+      <!-- ==================================================== -->
+      <section id="section-history" class="content-section" role="tabpanel" aria-labelledby="tab-btn-history">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Student Attendance History</h2>
+            <p class="section-desc">Search, filter, and audit chronological attendance records for any student.</p>
+          </div>
+        </div>
+
+        <!-- Search & Filter Card -->
+        <div class="card search-card">
+          <form id="history-search-form" class="lookup-form-grid" novalidate>
+            <div class="form-group">
+              <label for="history-student-id" class="form-label">Student ID <span class="required-star">*</span></label>
+              <div class="input-wrapper">
+                <input
+                  type="text"
+                  id="history-student-id"
+                  name="studentId"
+                  class="form-input"
+                  placeholder="e.g. CSE0917"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="history-subject-filter" class="form-label">Filter by Subject</label>
+              <div class="input-wrapper select-wrapper">
+                <select id="history-subject-filter" class="form-select">
+                  <option value="">All Authorized Subjects</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group form-group-action">
+              <button type="submit" id="history-fetch-btn" class="btn btn-primary btn-block">
+                <span id="history-btn-text">Retrieve History</span>
+                <div id="history-btn-spinner" class="spinner-small" style="display: none;"></div>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- History Summary Stats -->
+        <div id="history-stats-container" class="history-stats-row" style="display: none;">
+          <div class="stat-mini-card">
+            <span class="stat-mini-label">Student ID</span>
+            <span id="history-stat-student-id" class="stat-mini-val">--</span>
+          </div>
+          <div class="stat-mini-card">
+            <span class="stat-mini-label">Total Records</span>
+            <span id="history-stat-total" class="stat-mini-val">0</span>
+          </div>
+          <div class="stat-mini-card">
+            <span class="stat-mini-label">Present</span>
+            <span id="history-stat-present" class="stat-mini-val text-green">0</span>
+          </div>
+          <div class="stat-mini-card">
+            <span class="stat-mini-label">Absent</span>
+            <span id="history-stat-absent" class="stat-mini-val text-red">0</span>
+          </div>
+          <div class="stat-mini-card">
+            <span class="stat-mini-label">Attendance Rate</span>
+            <span id="history-stat-percentage" class="stat-mini-val text-blue">0%</span>
+          </div>
+        </div>
+
+        <!-- History Table Card -->
+        <div id="history-table-container" class="card table-card" style="display: none;">
+          <div class="table-card-header">
+            <h3 class="table-card-title">Verified Attendance Log</h3>
+            <span id="history-records-count-badge" class="badge badge-neutral">0 records</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="history-table" aria-label="Student Attendance History Table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Subject</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Teacher Identity</th>
+                  <th scope="col">Signer Wallet</th>
+                  <th scope="col">Block Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="history-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="history-empty-state" class="empty-state-card" style="display: none;">
+          <div class="empty-state-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v4"/>
+              <path d="M12 16h.01"/>
+            </svg>
+          </div>
+          <h3 id="history-empty-title">No Attendance Records Found</h3>
+          <p id="history-empty-message">No attendance history exists for this student on the blockchain.</p>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- SECTION 5: SUBJECT-WISE ATTENDANCE REPORT & CSV -->
+      <!-- ==================================================== -->
+      <section id="section-report" class="content-section" role="tabpanel" aria-labelledby="tab-btn-report">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Subject-Wise Attendance Reports</h2>
+            <p class="section-desc">Generate statistical summaries, audit records, and export reports to CSV.</p>
+          </div>
+        </div>
+
+        <div class="card search-card">
+          <div class="report-filter-bar">
+            <div class="form-group flex-1">
+              <label for="report-subject-select" class="form-label">Select Subject</label>
+              <div class="input-wrapper select-wrapper">
+                <select id="report-subject-select" class="form-select">
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+            </div>
+            <div class="report-action-buttons">
+              <button type="button" id="report-fetch-btn" class="btn btn-primary">
+                <span>Generate Report</span>
+              </button>
+              <button type="button" id="report-export-csv-btn" class="btn btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Export to CSV</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subject Summary Metrics -->
+        <div id="report-metrics-container" class="report-metrics-grid" style="display: none; margin-top: 1.25rem;">
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Lecture Sessions Held</span>
+            </div>
+            <div class="stat-card-body">
+              <div id="report-stat-sessions" class="stat-value">0</div>
+            </div>
+            <div class="stat-card-footer">
+              <span class="stat-subtitle">Distinct recorded class dates</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Total Records</span>
+            </div>
+            <div class="stat-card-body">
+              <div id="report-stat-records" class="stat-value">0</div>
+            </div>
+            <div class="stat-card-footer">
+              <span class="stat-subtitle">Cumulative entries on blockchain</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Overall Attendance Rate</span>
+            </div>
+            <div class="stat-card-body">
+              <div id="report-stat-rate" class="stat-value text-green">0%</div>
+            </div>
+            <div class="stat-card-footer">
+              <span id="report-stat-breakdown" class="stat-subtitle">0 Present &bull; 0 Absent</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Records Table -->
+        <div id="report-table-card" class="card table-card" style="display: none; margin-top: 1.25rem;">
+          <div class="table-card-header">
+            <h3 class="table-card-title">Subject Class Log &mdash; <span id="report-subject-title">Subject</span></h3>
+            <span id="report-count-badge" class="badge badge-neutral">0 records</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="report-table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Teacher Attribution</th>
+                  <th scope="col">Signer Wallet</th>
+                  <th scope="col">Block Timestamp</th>
+                </tr>
+              </thead>
+              <tbody id="report-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- SECTION 6: FIND AN INDIVIDUAL ON-CHAIN RECORD -->
+      <!-- ==================================================== -->
+      <section id="section-lookup" class="content-section" role="tabpanel" aria-labelledby="tab-btn-lookup">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Find Individual On-Chain Record</h2>
+            <p class="section-desc">Query the Ethereum smart contract for a specific student, subject, and date record.</p>
+          </div>
+        </div>
+
+        <div class="card search-card">
+          <form id="lookup-search-form" class="lookup-form-grid" novalidate>
+            <div class="form-group">
+              <label for="lookup-student-id" class="form-label">Student ID <span class="required-star">*</span></label>
+              <div class="input-wrapper">
+                <input type="text" id="lookup-student-id" class="form-input" placeholder="e.g. CSE0917" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="lookup-subject" class="form-label">Subject</label>
+              <div class="input-wrapper select-wrapper">
+                <select id="lookup-subject" class="form-select">
+                  <!-- Populated dynamically -->
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="lookup-date" class="form-label">Attendance Date <span class="required-star">*</span></label>
+              <div class="input-wrapper">
+                <input type="date" id="lookup-date" class="form-input" required />
+              </div>
+            </div>
+
+            <div class="form-group form-group-action">
+              <button type="submit" id="lookup-search-btn" class="btn btn-primary btn-block">
+                <span id="lookup-btn-text">Verify Record</span>
+                <div id="lookup-btn-spinner" class="spinner-small" style="display: none;"></div>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div id="lookup-alert-container" class="alert-box" style="display: none;" role="alert">
+          <div class="alert-icon" id="lookup-alert-icon"></div>
+          <div class="alert-content">
+            <h4 id="lookup-alert-title" class="alert-title"></h4>
+            <p id="lookup-alert-message" class="alert-message"></p>
+          </div>
+        </div>
+
+        <!-- Verified Record Card -->
+        <div id="lookup-result-card" class="card record-detail-card" style="display: none;">
+          <div class="record-detail-header">
+            <div class="record-header-left">
+              <span class="verified-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span>Verified On-Chain</span>
+              </span>
+              <h3 class="record-student-title" id="lookup-res-student-id">--</h3>
+            </div>
+            <div id="lookup-res-status-badge"></div>
+          </div>
+
+          <div class="record-detail-grid">
+            <div class="record-detail-item">
+              <span class="detail-label">Subject</span>
+              <span class="detail-value" id="lookup-res-subject">--</span>
+            </div>
+
+            <div class="record-detail-item">
+              <span class="detail-label">Attendance Date</span>
+              <span class="detail-value" id="lookup-res-date">--</span>
+            </div>
+
+            <div class="record-detail-item">
+              <span class="detail-label">Attendance Status</span>
+              <span class="detail-value" id="lookup-res-status">--</span>
+            </div>
+
+            <div class="record-detail-item">
+              <span class="detail-label">Teacher Attribution</span>
+              <span class="detail-value" id="lookup-res-teacher">--</span>
+            </div>
+
+            <div class="record-detail-item">
+              <span class="detail-label">Ethereum Block Timestamp</span>
+              <span class="detail-value" id="lookup-res-timestamp">--</span>
+            </div>
+
+            <div class="record-detail-item detail-item-wide">
+              <span class="detail-label">Signer Wallet Address</span>
+              <div class="detail-value address-container">
+                <code class="wallet-address" id="lookup-res-recorded-by">--</code>
+                <button id="lookup-copy-address-btn" class="btn-copy" title="Copy Address">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================== -->
+      <!-- SECTION 7: ADMINISTRATOR CONSOLE -->
+      <!-- ==================================================== -->
+      <section id="section-admin" class="content-section" role="tabpanel" aria-labelledby="tab-btn-admin">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Administrator Management Console</h2>
+            <p class="section-desc">Manage faculty accounts, assign subjects, and control system access.</p>
+          </div>
+          <button type="button" id="admin-open-create-modal" class="btn btn-primary">
+            <span>+ Add New Teacher</span>
+          </button>
+        </div>
+
+        <div class="card table-card">
+          <div class="table-card-header">
+            <h3 class="table-card-title">Registered Faculty &amp; Accounts</h3>
+            <span id="admin-teachers-count-badge" class="badge badge-neutral">0 Teachers</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="admin-teachers-table">
+              <thead>
+                <tr>
+                  <th scope="col">Teacher ID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Username</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Assigned Subjects</th>
+                  <th scope="col">Account Status</th>
+                  <th scope="col" style="width: 140px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-teachers-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add/Edit Teacher Modal / Form -->
+        <div id="admin-create-modal" class="modal-overlay" style="display: none;">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3 class="modal-title" id="admin-modal-title">Create Faculty Account</h3>
+              <button type="button" id="admin-close-modal" class="btn-icon">&times;</button>
+            </div>
+            <form id="admin-create-teacher-form">
+              <div class="form-group">
+                <label for="admin-new-id" class="form-label">Teacher ID <span class="required-star">*</span></label>
+                <input type="text" id="admin-new-id" class="form-input" placeholder="e.g. TCH-004" required />
+              </div>
+              <div class="form-group">
+                <label for="admin-new-name" class="form-label">Full Name <span class="required-star">*</span></label>
+                <input type="text" id="admin-new-name" class="form-input" placeholder="e.g. Prof. Claude Shannon" required />
+              </div>
+              <div class="form-group">
+                <label for="admin-new-username" class="form-label">Username <span class="required-star">*</span></label>
+                <input type="text" id="admin-new-username" class="form-input" placeholder="e.g. teacher.shannon" required />
+              </div>
+              <div class="form-group">
+                <label for="admin-new-password" class="form-label">Password <span class="required-star">*</span></label>
+                <input type="password" id="admin-new-password" class="form-input" placeholder="Minimum 6 characters" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Assign Subjects</label>
+                <div class="checkbox-group" id="admin-subjects-checkboxes">
+                  <label class="checkbox-label">
+                    <input type="checkbox" value="Java Programming" name="adminSubject" />
+                    <span>Java Programming (CS301)</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" value="Database Management Systems" name="adminSubject" />
+                    <span>Database Management Systems (CS302)</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" value="Computer Networks" name="adminSubject" />
+                    <span>Computer Networks (CS303)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" id="admin-cancel-modal" class="btn btn-secondary">Cancel</button>
+                <button type="submit" id="admin-submit-modal" class="btn btn-primary">Save Account</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-container">
+        <p>&copy; Blockchain-Based Attendance System &mdash; Built with Solidity 0.8.20, Hardhat, Express.js &amp; ethers.js</p>
+        <p class="footer-note">All records cryptographically signed and stored immutably on the Ethereum blockchain testnet.</p>
       </div>
-    </section>
+    </footer>
 
-  </main>
-
-  <!-- Footer -->
-  <footer class="app-footer">
-    <div class="footer-container">
-      <p>&copy; Blockchain-Based Attendance System &mdash; Built with Solidity, Hardhat, Express.js &amp; ethers.js</p>
-      <p class="footer-note">All records stored immutably on the local Ethereum blockchain testnet.</p>
-    </div>
-  </footer>
+  </div>
 
   <script src="js/app.js"></script>
 </body>

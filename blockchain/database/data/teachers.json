@@ -1,0 +1,42 @@
+[
+  {
+    "id": "ADMIN-001",
+    "username": "admin",
+    "name": "System Administrator",
+    "passwordHash": "$2b$10$8kCW3tedILh45PoD5vT4ZudMjN/qw5khvFSEL6ULdq/2zVbCnZvUO",
+    "role": "admin",
+    "assignedSubjects": [
+      "Blockchain Technology",
+      "Software Development",
+      "Java Programming",
+      "Database Management Systems",
+      "Computer Networks"
+    ],
+    "isActive": true,
+    "createdAt": "2026-10-25T13:58:26.217Z"
+  },
+  {
+    "id": "TCH-001",
+    "username": "nazneen",
+    "name": "Nazneen",
+    "passwordHash": "$2b$10$iGVDrc7z0p1iGsinqZ4iYeGZ0gR6t9AdQDjYkFJNPxt4hgRYTDVA6",
+    "role": "teacher",
+    "assignedSubjects": [
+      "Blockchain Technology"
+    ],
+    "isActive": true,
+    "createdAt": "2026-10-25T13:58:26.217Z"
+  },
+  {
+    "id": "TCH-002",
+    "username": "shakthi",
+    "name": "Shakthi",
+    "passwordHash": "$2b$10$iGVDrc7z0p1iGsinqZ4iYeGZ0gR6t9AdQDjYkFJNPxt4hgRYTDVA6",
+    "role": "teacher",
+    "assignedSubjects": [
+      "Software Development"
+    ],
+    "isActive": true,
+    "createdAt": "2026-10-25T13:58:26.217Z"
+  }
+]

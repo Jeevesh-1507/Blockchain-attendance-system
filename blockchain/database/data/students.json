@@ -1,0 +1,65 @@
+[
+  {
+    "id": "CSE0917",
+    "name": "Arjun Sharma",
+    "department": "Computer Science",
+    "semester": 6,
+    "enrolledSubjects": [
+      "Blockchain Technology",
+      "Software Development",
+      "Java Programming",
+      "Database Management Systems",
+      "Computer Networks"
+    ]
+  },
+  {
+    "id": "CSE0918",
+    "name": "Priya Patel",
+    "department": "Computer Science",
+    "semester": 6,
+    "enrolledSubjects": [
+      "Blockchain Technology",
+      "Software Development",
+      "Java Programming",
+      "Database Management Systems",
+      "Computer Networks"
+    ]
+  },
+  {
+    "id": "CSE0919",
+    "name": "Rahul Verma",
+    "department": "Computer Science",
+    "semester": 6,
+    "enrolledSubjects": [
+      "Blockchain Technology",
+      "Software Development",
+      "Java Programming",
+      "Database Management Systems",
+      "Computer Networks"
+    ]
+  },
+  {
+    "id": "CSE0920",
+    "name": "Sneha Rao",
+    "department": "Computer Science",
+    "semester": 6,
+    "enrolledSubjects": [
+      "Blockchain Technology",
+      "Software Development",
+      "Java Programming",
+      "Database Management Systems"
+    ]
+  },
+  {
+    "id": "CSE0921",
+    "name": "Vikram Malhotra",
+    "department": "Computer Science",
+    "semester": 6,
+    "enrolledSubjects": [
+      "Blockchain Technology",
+      "Software Development",
+      "Database Management Systems",
+      "Computer Networks"
+    ]
+  }
+]
