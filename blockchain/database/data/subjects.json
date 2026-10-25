@@ -1,0 +1,37 @@
+[
+  {
+    "id": "SUB-101",
+    "code": "CS301",
+    "name": "Blockchain Technology",
+    "department": "Computer Science & Engineering",
+    "credits": 4
+  },
+  {
+    "id": "SUB-102",
+    "code": "CS302",
+    "name": "Software Development",
+    "department": "Computer Science & Engineering",
+    "credits": 4
+  },
+  {
+    "id": "SUB-103",
+    "code": "CS303",
+    "name": "Java Programming",
+    "department": "Computer Science & Engineering",
+    "credits": 4
+  },
+  {
+    "id": "SUB-104",
+    "code": "CS304",
+    "name": "Database Management Systems",
+    "department": "Computer Science & Engineering",
+    "credits": 4
+  },
+  {
+    "id": "SUB-105",
+    "code": "CS305",
+    "name": "Computer Networks",
+    "department": "Computer Science & Engineering",
+    "credits": 4
+  }
+]

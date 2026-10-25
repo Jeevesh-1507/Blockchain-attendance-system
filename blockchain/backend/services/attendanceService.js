@@ -55,14 +55,39 @@ class AttendanceService {
 
   /**
    * Submits a transaction to mark attendance on the blockchain.
-   * @param {string} studentId 
-   * @param {string} date 
-   * @param {string} status 
+   * Supports both 5-arg (studentId, subject, date, status, teacherId)
+   * and legacy 3-arg (studentId, date, status).
+   *
+   * @param {string} studentId
+   * @param {string} subjectOrDate
+   * @param {string} [dateOrStatus]
+   * @param {string} [statusOpt]
+   * @param {string} [teacherIdOpt]
    * @returns {Promise<{ transactionHash: string }>}
    */
-  async markAttendance(studentId, date, status) {
+  async markAttendance(studentId, subjectOrDate, dateOrStatus, statusOpt, teacherIdOpt) {
     const contract = this.getContract();
-    const tx = await contract.markAttendance(studentId, date, status);
+
+    let subject = "General";
+    let date = subjectOrDate;
+    let status = dateOrStatus;
+    let teacherId = "LEGACY_SIGNER";
+
+    if (statusOpt !== undefined) {
+      // 5-arg invocation: (studentId, subject, date, status, teacherId)
+      subject = subjectOrDate;
+      date = dateOrStatus;
+      status = statusOpt;
+      teacherId = teacherIdOpt || "UNKNOWN_TEACHER";
+    }
+
+    const tx = await contract.markAttendance(
+      studentId,
+      subject,
+      date,
+      status,
+      teacherId
+    );
     const receipt = await tx.wait();
     return {
       transactionHash: receipt.hash || tx.hash
@@ -70,37 +95,70 @@ class AttendanceService {
   }
 
   /**
-   * Checks if attendance has already been recorded for a given student and date.
-   * @param {string} studentId 
-   * @param {string} date 
-   * @returns {Promise<boolean>}
+   * Submits an explicit attendance correction transaction on the blockchain.
    */
-  async hasAttendance(studentId, date) {
+  async recordCorrection(studentId, subject, date, newStatus, reason, teacherId) {
     const contract = this.getContract();
-    return await contract.hasAttendance(studentId, date);
+    const tx = await contract.recordCorrection(
+      studentId,
+      subject,
+      date,
+      newStatus,
+      reason,
+      teacherId
+    );
+    const receipt = await tx.wait();
+    return {
+      transactionHash: receipt.hash || tx.hash
+    };
   }
 
   /**
-   * Retrieves specific attendance record for a student on a given date.
-   * @param {string} studentId 
-   * @param {string} date 
-   * @returns {Promise<object>}
+   * Checks if attendance has already been recorded.
+   * Supports both 3-arg (studentId, subject, date) and 2-arg (studentId, date).
    */
-  async getAttendance(studentId, date) {
+  async hasAttendance(studentId, subjectOrDate, dateOpt) {
     const contract = this.getContract();
-    const record = await contract.getAttendance(studentId, date);
+    let subject = "General";
+    let date = subjectOrDate;
+
+    if (dateOpt !== undefined) {
+      subject = subjectOrDate;
+      date = dateOpt;
+    }
+
+    return await contract.hasAttendance(studentId, subject, date);
+  }
+
+  /**
+   * Retrieves specific attendance record for a student, subject, and date.
+   * Supports both 3-arg (studentId, subject, date) and 2-arg (studentId, date).
+   */
+  async getAttendance(studentId, subjectOrDate, dateOpt) {
+    const contract = this.getContract();
+    let subject = "General";
+    let date = subjectOrDate;
+
+    if (dateOpt !== undefined) {
+      subject = subjectOrDate;
+      date = dateOpt;
+    }
+
+    const record = await contract.getAttendance(studentId, subject, date);
     return {
       studentId: record.studentId,
+      subject: record.subject,
       date: record.date,
       status: record.status,
       timestamp: record.timestamp.toString(),
-      recordedBy: record.recordedBy
+      recordedBy: record.recordedBy,
+      teacherId: record.teacherId
     };
   }
 
   /**
    * Retrieves all attendance history for a given student.
-   * @param {string} studentId 
+   * @param {string} studentId
    * @returns {Promise<Array<object>>}
    */
   async getStudentAttendanceHistory(studentId) {
@@ -108,10 +166,46 @@ class AttendanceService {
     const records = await contract.getStudentAttendanceHistory(studentId);
     return records.map((record) => ({
       studentId: record.studentId,
+      subject: record.subject,
       date: record.date,
       status: record.status,
       timestamp: record.timestamp.toString(),
-      recordedBy: record.recordedBy
+      recordedBy: record.recordedBy,
+      teacherId: record.teacherId
+    }));
+  }
+
+  /**
+   * Retrieves all attendance history for a given subject.
+   */
+  async getSubjectAttendanceHistory(subject) {
+    const contract = this.getContract();
+    const records = await contract.getSubjectAttendanceHistory(subject);
+    return records.map((record) => ({
+      studentId: record.studentId,
+      subject: record.subject,
+      date: record.date,
+      status: record.status,
+      timestamp: record.timestamp.toString(),
+      recordedBy: record.recordedBy,
+      teacherId: record.teacherId
+    }));
+  }
+
+  /**
+   * Retrieves all attendance records stored across the smart contract.
+   */
+  async getAllAttendanceRecords() {
+    const contract = this.getContract();
+    const records = await contract.getAllAttendanceRecords();
+    return records.map((record) => ({
+      studentId: record.studentId,
+      subject: record.subject,
+      date: record.date,
+      status: record.status,
+      timestamp: record.timestamp.toString(),
+      recordedBy: record.recordedBy,
+      teacherId: record.teacherId
     }));
   }
 
@@ -123,6 +217,25 @@ class AttendanceService {
     const contract = this.getContract();
     const count = await contract.getTotalAttendanceCount();
     return Number(count);
+  }
+
+  /**
+   * Retrieves audit corrections for a record.
+   */
+  async getCorrections(studentId, subject, date) {
+    const contract = this.getContract();
+    const corrections = await contract.getCorrections(studentId, subject, date);
+    return corrections.map((c) => ({
+      studentId: c.studentId,
+      subject: c.subject,
+      date: c.date,
+      previousStatus: c.previousStatus,
+      newStatus: c.newStatus,
+      reason: c.reason,
+      teacherId: c.teacherId,
+      timestamp: c.timestamp.toString(),
+      recordedBy: c.recordedBy
+    }));
   }
 }
 

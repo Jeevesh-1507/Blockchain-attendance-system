@@ -1,6 +1,10 @@
 require("dotenv").config();
 const path = require("path");
 const express = require("express");
+const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const subjectRoutes = require("./routes/subjectRoutes");
+const studentRoutes = require("./routes/studentRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 
 const app = express();
@@ -13,6 +17,10 @@ const frontendPath = path.join(__dirname, "../frontend");
 app.use(express.static(frontendPath));
 
 // API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/subjects", subjectRoutes);
+app.use("/api/students", studentRoutes);
 app.use("/api/attendance", attendanceRoutes);
 
 // Serve index.html for root path
